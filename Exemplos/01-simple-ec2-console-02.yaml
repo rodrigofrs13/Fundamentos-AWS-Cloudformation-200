@@ -1,0 +1,11 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Workshop Cloudformation - 200 - Setup feito via Web Console
+
+Resources:
+  WebAppInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0d5eff06f840b45e9
+      InstanceType: t3a.micro
+
+
