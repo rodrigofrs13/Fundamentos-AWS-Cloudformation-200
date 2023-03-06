@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Workshop Cloudformation - 200 - Setup feito via CLI
+
+Resources:
+  WebAppInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
+      InstanceType: t3a.micro
+
+Outputs:
+  outputInstance:
+    Description: A reference to the created EC2 Instance
+    Value: !Ref WebAppInstance
