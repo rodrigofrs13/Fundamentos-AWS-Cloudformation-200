@@ -36,10 +36,10 @@ Resources:
   UbuntuInstance1:
     Type: AWS::EC2::Instance
     Properties:
-      KeyName: CustomVPC
-      ImageId: ami-04505e74c0741db8d
+      KeyName: rodrigofrs
+      ImageId: ami-0557a15b87f6559cf
       SubnetId: !Ref PublicSubnet1
-      InstanceType: t2.micro
+      InstanceType: t3a.micro
       SecurityGroupIds:
         - !Ref InstanceSecurityGroup
       UserData:
@@ -58,9 +58,9 @@ Resources:
   UbuntuInstance2:
     Type: AWS::EC2::Instance
     Properties:
-      KeyName: CustomVPC
-      ImageId: ami-04505e74c0741db8d
-      InstanceType: t2.micro
+      KeyName: rodrigofrs
+      ImageId: ami-0557a15b87f6559cf
+      InstanceType: t3a.micro
       SubnetId: !Ref PublicSubnet2
       SecurityGroupIds:
         - !Ref InstanceSecurityGroup
