@@ -33,11 +33,11 @@ Resources:
       Tags:
         - Key: Name
           Value: InstanceSecurityGroup
-  UbuntuInstance1:
+  Instance1:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: rodrigofrs
-      ImageId: ami-0557a15b87f6559cf
+      ImageId: ami-005f9685cb30f234b
       SubnetId: !Ref PublicSubnet1
       InstanceType: t3a.micro
       SecurityGroupIds:
@@ -46,20 +46,18 @@ Resources:
         Fn::Base64: 
           !Sub |
             #!/bin/bash
-            sudo su
-            sudo apt-get update -y
-            sudo apt-get install -y apache2
-            sudo ufw allow -y 'Apache'
-            sudo systemctl start apache2
-            sudo systemctl enable apache2        
+            sudo yum update -y
+            sudo amazon-linux-extras install nginx1 -y 
+            sudo systemctl enable nginx
+            sudo systemctl start nginx            
       Tags:
         - Key: Name
-          Value: UbuntuInstance1
-  UbuntuInstance2:
+          Value: Instance1
+  Instance2:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: rodrigofrs
-      ImageId: ami-0557a15b87f6559cf
+      ImageId: ami-005f9685cb30f234b
       InstanceType: t3a.micro
       SubnetId: !Ref PublicSubnet2
       SecurityGroupIds:
@@ -68,15 +66,13 @@ Resources:
         Fn::Base64: 
           !Sub |
             #!/bin/bash
-            sudo su
-            sudo apt-get update -y
-            sudo apt-get install -y apache2
-            sudo ufw allow -y 'Apache'
-            sudo systemctl start apache2
-            sudo systemctl enable apache2            
+            sudo yum update -y
+            sudo amazon-linux-extras install nginx1 -y 
+            sudo systemctl enable nginx
+            sudo systemctl start nginx         
       Tags:
         - Key: Name
-          Value: UbuntuInstance2
+          Value: Instance2
   ELBTargetGroup1:
    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
    Properties:
@@ -89,7 +85,7 @@ Resources:
      VpcId: !Ref CustomVPC
      TargetType: instance
      Targets: 
-       - Id: !Ref UbuntuInstance1
+       - Id: !Ref Instance1
          Port: 80
   ELBTargetGroup2:
    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
@@ -103,7 +99,7 @@ Resources:
      VpcId: !Ref CustomVPC
      TargetType: instance
      Targets: 
-       - Id: !Ref UbuntuInstance2
+       - Id: !Ref Instance2
          Port: 80
   ELBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -155,10 +151,10 @@ Outputs:
     Value: !Ref InstanceSecurityGroup
   outputUbuntuInstance:
     Description: A reference to the created EC2 Instance
-    Value: !Ref UbuntuInstance1
+    Value: !Ref Instance1
   outputUbuntuInstance:
     Description: A reference to the created EC2 Instance
-    Value: !Ref UbuntuInstance2
+    Value: !Ref Instance2
   outputELBTargetGroup:
     Description: A reference to the created Target Group
     Value: !Ref ELBTargetGroup1
