@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Workshop AWS Cloudformation 200
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      AMI: "ami-005f9685cb30f234b"
+    us-west-1:
+      AMI: "ami-0bdb828fd58c52235"
+    us-west-2:
+      AMI: "ami-a0cfeed8"
+    eu-west-1:
+      AMI: "ami-047bb4163c506cd98"
+    sa-east-1:
+      AMI: "ami-07b14488da8ea02a0"
+    ap-southeast-1:
+      AMI: "ami-08569b978cc4dfa10"
+    ap-southeast-2:
+      AMI: "ami-09b42976632b27e9b"
+    ap-northeast-1:
+      AMI: "ami-06cd52961ce9f0d85"
+
+Parameters:
+  EnvType:
+    Description: Environment type.
+    Default: dev
+    Type: String
+    AllowedValues: [prod, dev]
+    ConstraintDescription: must specify prod or dev.
+  
+Conditions:
+  CreateProdResources: !Equals [!Ref EnvType, prod]
+  CreateDevResources: !Equals [!Ref EnvType, "dev"]
+
+Resources:
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      InstanceType: !If [CreateProdResources, t3a.medium, !If [CreateDevResources, t3a.small,t3a.micro]]    
+      IamInstanceProfile: "ssm-role"
+      SecurityGroupIds:
+        - !Ref WebAppSecurityGroup
+      Tags:
+        - Key: Name
+          Value: My EC2 Instance
+        - Key: Owner
+          Value: Workshop
+        - Key: EnvType
+          Value: !Ref EnvType   
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          sudo amazon-linux-extras install nginx1
+          yum install nginx -y
+          systemctl start nginx
+          systemctl enable nginx
+          echo "Workshop Cloudformation 200" > /usr/share/nginx/html/index.html
+          systemctl restart nginx    
+# MountPoint:
+#    Type: "AWS::EC2::VolumeAttachment"
+#    Condition: CreateProdResources
+#    Properties:
+#      InstanceId: !Ref EC2Instance
+#      VolumeId: !Ref NewVolume
+#      Device: /dev/sdh
+#  NewVolume:
+#    Type: "AWS::EC2::Volume"
+#    Condition: CreateProdResources
+#    Properties:
+#      Size: 100
+#      AvailabilityZone: !GetAtt EC2Instance.AvailabilityZone
+
+  WebAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Join ["-", [webapp-security-group, !Ref EnvType]]
+      GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0      
+
+Outputs:
+  outputInstance:
+    Description: A reference to the created EC2 Instance
+    Value: !Ref EC2Instance    
