@@ -1,175 +1,81 @@
----
-AWSTemplateFormatVersion: 2010-09-09
-Description: Workshop Cloudformation - 200 - Web EC2 Full
+AWSTemplateFormatVersion: '2010-09-09'
+Metadata:
+  License: Apache-2.0
+Description: 'AWS CloudFormation Sample Template EC2InstanceWithSecurityGroupSample:
+  Create an Amazon EC2 instance running the Amazon Linux AMI. The AMI is chosen based
+  on the region in which the stack is run. This example creates an EC2 security group
+  for the instance to give you SSH access. **WARNING** This template creates an Amazon
+  EC2 instance. You will be billed for the AWS resources used if you create a stack
+  from this template.'
 Parameters:
-  CustomVPC:
-    Description: Select One VPC available in your existing account
-    Type: AWS::EC2::VPC::Id
-    Default: "<your default VPC ID>"
-  PublicSubnet1:
-    Description: Select one public subnet available in your existing account
-    Type: AWS::EC2::Subnet::Id
-    Default: "<your default public subnet id>"
-  PublicSubnet2:
-    Description: Select one public subnet available in your existing account
-    Type: AWS::EC2::Subnet::Id
-    Default: "<your default public subnet id>"
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t3.small
+    AllowedValues: [t2.nano, t2.micro, t2.small, t2.medium, t2.large, t2.xlarge, t2.2xlarge,
+      t3.nano, t3.micro, t3.small, t3.medium, t3.large, t3.xlarge, t3.2xlarge,
+      m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge,
+      m5.large, m5.xlarge, m5.2xlarge, m5.4xlarge,
+      c5.large, c5.xlarge, c5.2xlarge, c5.4xlarge, c5.9xlarge,
+      g3.8xlarge,
+      r5.large, r5.xlarge, r5.2xlarge, r5.4xlarge, r3.12xlarge,
+      i3.xlarge, i3.2xlarge, i3.4xlarge, i3.8xlarge,
+      d2.xlarge, d2.2xlarge, d2.4xlarge, d2.8xlarge]
+    ConstraintDescription: must be a valid EC2 instance type.
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  LatestAmiId:
+    Type:  'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref 'InstanceType'
+      SecurityGroups: [!Ref 'InstanceSecurityGroup']
+      KeyName: !Ref 'KeyName'
+      ImageId: !Ref 'LatestAmiId'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install nginx -y
+          systemctl start nginx
+          systemctl enable nginx
+  
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref CustomVPC
-      GroupName: "AllowEc2Traffic"
-      GroupDescription: "Enable SSH access and HTTP access on the inbound port for EC2"
+      GroupDescription: Enable SSH access via port 22
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: InstanceSecurityGroup
-  Instance1:
-    Type: AWS::EC2::Instance
-    Properties:
-      KeyName: rodrigofrs
-      ImageId: ami-005f9685cb30f234b
-      SubnetId: !Ref PublicSubnet1
-      InstanceType: t3a.micro
-      SecurityGroupIds:
-        - !Ref InstanceSecurityGroup
-      UserData:
-        Fn::Base64: 
-          !Sub |
-            #!/bin/bash
-            sudo yum update -y
-            sudo amazon-linux-extras install nginx1 -y 
-            sudo systemctl enable nginx
-            sudo systemctl start nginx            
-      Tags:
-        - Key: Name
-          Value: Instance1
-  Instance2:
-    Type: AWS::EC2::Instance
-    Properties:
-      KeyName: rodrigofrs
-      ImageId: ami-005f9685cb30f234b
-      InstanceType: t3a.micro
-      SubnetId: !Ref PublicSubnet2
-      SecurityGroupIds:
-        - !Ref InstanceSecurityGroup
-      UserData:
-        Fn::Base64: 
-          !Sub |
-            #!/bin/bash
-            sudo yum update -y
-            sudo amazon-linux-extras install nginx1 -y 
-            sudo systemctl enable nginx
-            sudo systemctl start nginx         
-      Tags:
-        - Key: Name
-          Value: Instance2
-  ELBTargetGroup1:
-   Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
-   Properties:
-     HealthCheckIntervalSeconds: 6
-     HealthCheckTimeoutSeconds: 5
-     HealthyThresholdCount: 2
-     Port: 80
-     Protocol: HTTP
-     UnhealthyThresholdCount: 2
-     VpcId: !Ref CustomVPC
-     TargetType: instance
-     Targets: 
-       - Id: !Ref Instance1
-         Port: 80
-  ELBTargetGroup2:
-   Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
-   Properties:
-     HealthCheckIntervalSeconds: 6
-     HealthCheckTimeoutSeconds: 5
-     HealthyThresholdCount: 2
-     Port: 80
-     Protocol: HTTP
-     UnhealthyThresholdCount: 2
-     VpcId: !Ref CustomVPC
-     TargetType: instance
-     Targets: 
-       - Id: !Ref Instance2
-         Port: 80
-  ELBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: "ELBTraffic"
-      GroupDescription: "Enable HTTP access on the inbound port for ELB"
-      VpcId: !Ref CustomVPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: ELBSecurityGroup
-  ElasticLoadBalancer:
-    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
-    Properties:
-      Subnets: 
-        - !Ref PublicSubnet1
-        - !Ref PublicSubnet2
-      SecurityGroups: 
-        - !Ref ELBSecurityGroup
-  ElbListener1:
-   Type: 'AWS::ElasticLoadBalancingV2::Listener'
-   Properties:
-     DefaultActions:
-       - Type: forward
-         TargetGroupArn: !Ref ELBTargetGroup1
-     LoadBalancerArn: !Ref ElasticLoadBalancer
-     Port: '8000'
-     Protocol: HTTP
-  ElbListener2:
-   Type: 'AWS::ElasticLoadBalancingV2::Listener'
-   Properties:
-     DefaultActions:
-       - Type: forward
-         TargetGroupArn: !Ref ELBTargetGroup2
-     LoadBalancerArn: !Ref ElasticLoadBalancer
-     Port: '9000'
-     Protocol: HTTP
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref 'SSHLocation'
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+         CidrIp: 0.0.0.0/0
 Outputs:
-  outputInstanceSecurityGroup:
-    Description: A reference to the created security group
-    Value: !Ref InstanceSecurityGroup
-  outputUbuntuInstance:
-    Description: A reference to the created EC2 Instance
-    Value: !Ref Instance1
-  outputUbuntuInstance:
-    Description: A reference to the created EC2 Instance
-    Value: !Ref Instance2
-  outputELBTargetGroup:
-    Description: A reference to the created Target Group
-    Value: !Ref ELBTargetGroup1
-  outputELBTargetGroup:
-    Description: A reference to the created Target Group
-    Value: !Ref ELBTargetGroup2
-  outputELBSecurityGroup:
-    Description: A reference to the created Security Group
-    Value: !Ref ELBSecurityGroup
-  outputElasticLoadBalancer:
-    Description: A reference to the created Elastic Load Balancer
-    Value: !Ref ElasticLoadBalancer
-  outputElasticListener:
-    Description: A reference to the created Elastic Load Balancer Listener
-    Value: !Ref ElbListener1
-  outputElasticListener:
-    Description: A reference to the created Elastic Load Balancer Listener
-    Value: !Ref ElbListener2
+  InstanceId:
+    Description: InstanceId of the newly created EC2 instance
+    Value: !Ref 'EC2Instance'
+  AZ:
+    Description: Availability Zone of the newly created EC2 instance
+    Value: !GetAtt [EC2Instance, AvailabilityZone]
+  PublicDNS:
+    Description: Public DNSName of the newly created EC2 instance
+    Value: !GetAtt [EC2Instance, PublicDnsName]
+  PublicIP:
+    Description: Public IP address of the newly created EC2 instance
+    Value: !GetAtt [EC2Instance, PublicIp]

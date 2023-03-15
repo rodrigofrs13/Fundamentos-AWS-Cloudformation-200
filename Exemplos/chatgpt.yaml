@@ -1,0 +1,16 @@
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0c94855ba95c71c99 # Amazon Linux 2 LTS
+      KeyName: rodrigofrs
+      SecurityGroupIds:
+        - sg-0dc361135c2c0d76a # replace with your security group ID
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install nginx -y
+          systemctl start nginx
+          systemctl enable nginx
