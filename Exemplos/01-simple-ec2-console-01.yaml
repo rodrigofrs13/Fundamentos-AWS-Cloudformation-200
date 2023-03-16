@@ -1,11 +1,13 @@
 AWSTemplateFormatVersion: 2010-09-09
+#---- Inicio da sessão DESCRIPTION-----#
 Description: Workshop Cloudformation - 200 - Setup feito via Web Console
 
 Resources:
   WebAppInstance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0d5eff06f840b45e9
+      ImageId: ami-005f9685cb30f234b
       InstanceType: t3a.micro
+      IamInstanceProfile: "ssm-role"
 
 

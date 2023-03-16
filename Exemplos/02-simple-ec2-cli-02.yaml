@@ -1,19 +1,23 @@
 AWSTemplateFormatVersion: 2010-09-09
+#---- Inicio da sessão DESCRIPTION-----#
 Description: Workshop Cloudformation - 200 - Setup feito via CLI
 
+
+#---- Inicio da sessão RESOURSES-----#
 Resources:
   WebAppInstance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
+      ImageId: ami-005f9685cb30f234b
       InstanceType: t3a.micro
+      IamInstanceProfile: "ssm-role"
       SecurityGroupIds:
         - !Ref WebAppSecurityGroup
 
   WebAppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Join ["-", [webapp-security-group, dev]]
+      GroupName: !Join ["-", [workshop-sg, dev]]
       GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -29,7 +33,7 @@ Resources:
           ToPort: 22
           CidrIp: 0.0.0.0/0
     
-
+#---- Inicio da sessão OUTPUTS-----#
 Outputs:
   outputInstance:
     Description: A reference to the created EC2 Instance

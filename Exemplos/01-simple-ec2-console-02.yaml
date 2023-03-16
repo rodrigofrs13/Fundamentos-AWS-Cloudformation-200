@@ -1,18 +1,38 @@
 AWSTemplateFormatVersion: 2010-09-09
+#---- Inicio da sessão DESCRIPTION-----#
 Description: Workshop Cloudformation - 200 - Setup feito via Web Console
 
+#---- Inicio da sessão PARAMETERS-----#
+Parameters:
+  EnvType:
+    Description: Environment type.
+    Default: dev
+    Type: String
+
+
+#---- Inicio da sessão RESOURSES-----#
 Resources:
   WebAppInstance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0d5eff06f840b45e9
+      ImageId: ami-005f9685cb30f234b
       InstanceType: t3a.micro
+      IamInstanceProfile: "ssm-role"
+      SecurityGroupIds:
+        - !Ref WebAppSecurityGroup
+      Tags:
+        - Key: Name
+          Value: exemple2
+        - Key: Owner
+          Value: Workshop
+        - Key: EnvType
+          Value: !Ref EnvType 
 
 
   WebAppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Join ["-", [webapp-security-group, dev]]
+      GroupName: !Join ["-", [workshop-sg, !Ref EnvType]]
       GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
       SecurityGroupIngress:
         - IpProtocol: tcp
