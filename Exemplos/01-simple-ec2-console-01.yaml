@@ -2,6 +2,8 @@ AWSTemplateFormatVersion: 2010-09-09
 #---- Inicio da sessão DESCRIPTION-----#
 Description: Workshop Cloudformation - 200 - Setup feito via Web Console
 
+
+#---- Inicio da sessão RESOURCES-----#
 Resources:
   WebAppInstance:
     Type: AWS::EC2::Instance

@@ -65,7 +65,7 @@ Resources:
   WebAppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Join ["-", [workshop-sg, !Ref EnvType]]
+      GroupName: !Join ["-", [workshop-sg2, !Ref EnvType]]
       GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
       SecurityGroupIngress:
         - IpProtocol: tcp

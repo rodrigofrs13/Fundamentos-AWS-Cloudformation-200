@@ -1,0 +1,14 @@
+aws cloudformation create-stack \
+  --stack-name simple-ec2 \
+  --template-body file:///simple-ec2.yaml
+
+
+aws cloudformation create-stack --stack-name workshop-demo --template-body file://02-simple-ec2-cli-01.yaml
+aws cloudformation describe-stacks --stack-name workshop-demo
+aws cloudformation update-stack --stack-name workshop-demo --template-body file://02-simple-ec2-cli-02.yaml
+aws cloudformation delete-stack --stack-name workshop-demo
+
+nós fundamos aqui no Triangulo um AWS User Group oficial
+https://www.meetup.com/pt-BR/aws-user-group-triangulo-mineiro/
+e estamos procurando lugares para meetups, a ideia e seguir com 2 meetups  por mês, 1 presencial e 1 remoto
+ ontem fizemos um na TQI aberto para comunidade
